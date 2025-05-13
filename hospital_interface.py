@@ -88,7 +88,7 @@ class HospitalApp:
             tk.Button(self.root, text="View Notes", command=lambda: self.view_notes(action_tracker)).pack(pady=5)
             tk.Button(self.root, text="Count Visits", command=lambda: self.count_visits(db, action_tracker)).pack(pady=5)
             
-        tk.Button(self.root, text="Logout", command=self.login_screen).pack(pady=10)
+        tk.Button(self.root, text="Logout", command=lambda: self.logout(action_tracker)).pack(pady=10)
 
     # Action-wrapped functional methods
     def generate_graphs(self, db, tracker):
