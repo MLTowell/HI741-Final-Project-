@@ -11,7 +11,7 @@ class HospitalDatabase:
             with open(self.csv_file, mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 # Convert the rows into a list of dictionaries
-                return {row['Patient_ID']: row for row in reader}
+                return list(reader)
         except FileNotFoundError:
             print(f"Error: The file '{self.csv_file}' was not found.")
             return {}
@@ -31,14 +31,13 @@ class HospitalDatabase:
             print(f"Error saving file: {e}")
 
     def get_patient(self, patient_id):
-        """Retrieve patient data by patient_id."""
-        return self.data.get(str(patient_id), None)
+        """Retrieve all visit records for a given patient_id."""
+        return [row for row in self.data if row.get("Patient_ID") == str(patient_id)]
 
-    def update_patient_data(self, patient_id, patient_data):
-        """Update or add patient data and save it."""
-        self.data[str(patient_id)] = patient_data
+    def add_visit_record(self, visit_record):
+        """Add a new visit record."""
+        self.data.append(visit_record)
         self.save_data()
 
     def get_all_visits(self):
-        """Return all visit records as a list."""
-        return list(self.data.values())  # Convert the dictionary to a list of values
+        return self.data
