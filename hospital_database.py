@@ -1,14 +1,18 @@
 import csv
 
 class HospitalDatabase:
-    def __init__(self, csv_file):
-        self.csv_file = csv_file
-        self.data = self.load_data()
-
+    def __init__(self, csv_file=None, preloaded_data=None):
+        if preloaded_data:
+            self.data = preloaded_data
+        elif csv_file:
+            self.data = self.load_csv(csv_file)
+        else:
+            self.data = []
+    
     def load_data(self):
         """Load hospital data from CSV file."""
         try:
-            with open(self.csv_file, mode='r', encoding='utf-8') as file:
+            with open(self.csv_file, mode='', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 # Convert the rows into a list of dictionaries
                 return list(reader)
