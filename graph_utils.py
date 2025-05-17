@@ -12,7 +12,7 @@ class GraphGenerator:
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Store list of visit records internally (dict values)
-        self.db = list(hospital_db.data.values())
+        self.db = hospital_db.data
 
     def count_chief_complaints(self):
         complaint_count = {}
