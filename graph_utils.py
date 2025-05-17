@@ -1,4 +1,3 @@
-
 import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -6,21 +5,25 @@ from datetime import datetime
 from dateutil import parser
 
 class GraphGenerator:
-    def __init__(self, hospital_db):
+    def __init__(self, visit_records):  # Expecting a list of dicts
         today_str = datetime.today().strftime("%m-%d-%Y")
-        self.output_dir = f"Management Statistics {today_str}"
+        self.output_dir = f"Hospital Statistics {today_str}"
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # Store list of visit records internally (dict values)
-        self.db = hospital_db.data
+        # Sanitize input
+        self.db = [r for r in visit_records if isinstance(r, dict)]
 
     def count_chief_complaints(self):
         complaint_count = {}
 
         for visit_data in self.db:
-            chief_complaint = visit_data.get("Chief_complaint")
+            chief_complaint = visit_data.get("Chief_complaint", "").strip()
             if chief_complaint:
                 complaint_count[chief_complaint] = complaint_count.get(chief_complaint, 0) + 1
+
+        if not complaint_count:
+            print("No chief complaint data found.")
+            return
 
         self.show_complaint_graph(complaint_count)
 
@@ -42,8 +45,13 @@ class GraphGenerator:
         departments = defaultdict(int)
 
         for visit in self.db:
-            dept = visit.get("Visit_department", "Unknown")
-            departments[dept] += 1
+            dept = visit.get("Visit_department", "Unknown").strip()
+            if dept:
+                departments[dept] += 1
+
+        if not departments:
+            print("No department data found.")
+            return
 
         plt.figure(figsize=(10, 5))
         plt.bar(departments.keys(), departments.values(), color="skyblue")
@@ -59,16 +67,15 @@ class GraphGenerator:
         visits_by_year = defaultdict(int)
 
         for visit in self.db:
-            date_str = visit.get("Visit_time", "")
+            date_str = visit.get("Visit_time", "").strip()
             if not date_str:
                 continue
 
             try:
-                date_obj = parser.parse(date_str)  # Flexible date parsing
+                date_obj = parser.parse(date_str)
                 visits_by_year[date_obj.year] += 1
-            except (ValueError, TypeError):
-                print(f"Skipping invalid date: {date_str}")
-                continue
+            except Exception as e:
+                print(f"Skipping invalid date: {date_str} ({e})")
 
         if not visits_by_year:
             print("No valid visit data available.")
@@ -84,7 +91,6 @@ class GraphGenerator:
         plt.ylabel("Number of Visits")
         plt.xticks(rotation=45)
         plt.tight_layout()
-
         plt.savefig(os.path.join(self.output_dir, "visits_per_year.png"))
         plt.show()
 
