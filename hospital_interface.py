@@ -63,6 +63,12 @@ class HospitalApp:
             action_tracker.track_action(username, "Unknown", "Failed Login")
             messagebox.showerror("Login Failed", "Invalid credentials")
 
+    def logout(self, tracker):
+        tracker.track_action(self.username, self.user_role, "Logged Out")
+        self.username = None
+        self.user_role = None
+        self.login_screen() 
+    
     def show_role_actions(self):
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -76,7 +82,7 @@ class HospitalApp:
             tk.Label(self.root, text="Management actions available.").pack(pady=10)
 
             tk.Button(self.root, text="Hospital Statistics", command=lambda: self.generate_graphs(db, action_tracker)).pack(pady=5)
-            tk.Button(self.root, text="User Statistics", command=lambda: self.display_user_statistics(action_tracker)).pack(pady=5)
+            tk.Button(self.root, text="User Actions Log", command=lambda: self.display_user_statistics(action_tracker)).pack(pady=5)
 
         if self.user_role == "admin":
             tk.Button(self.root, text="Count Visits", command=lambda: self.count_visits(db, action_tracker)).pack(pady=5)
@@ -122,7 +128,8 @@ class HospitalApp:
     def load_csv(self, path):
         with open(path, newline='', encoding='utf-8') as f:
             return list(csv.DictReader(f))
-        
+
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = HospitalApp(root)
