@@ -13,6 +13,12 @@ class GraphGenerator:
         # Sanitize input
         self.db = [r for r in visit_records if isinstance(r, dict)]
 
+    def get_timestamped_filepath(self, base_filename, ext="png"):
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%m%d%Y_%H%M%S")
+        filename = f"{base_filename}_{timestamp}.{ext}"
+        return os.path.join(self.output_dir, filename)
+
     def count_chief_complaints(self):
         complaint_count = {}
 
@@ -38,7 +44,9 @@ class GraphGenerator:
         plt.title('Occurrences of Chief Complaints')
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, "chief_complaints.png"))
+
+        filepath = self.get_timestamped_filepath("Patient Chief Complaints")
+        plt.savefig(filepath)
         plt.show()
 
     def generate_department_graph(self):
@@ -60,7 +68,9 @@ class GraphGenerator:
         plt.ylabel("Number of Visits")
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, "department_visits.png"))
+
+        filepath = self.get_timestamped_filepath("Hospital Department Visits")
+        plt.savefig(filepath)
         plt.show()
 
     def generate_visits_per_year_graph(self):
@@ -91,7 +101,9 @@ class GraphGenerator:
         plt.ylabel("Number of Visits")
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, "visits_per_year.png"))
+
+        filepath = self.get_timestamped_filepath("Yearly Hosptial Visits")
+        plt.savefig(filepath)
         plt.show()
 
     def generate_all(self):

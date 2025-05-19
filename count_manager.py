@@ -8,6 +8,7 @@ class CountManager:
         self.db = db
 
     def count_visits_by_date_gui(self, parent):
+        self.db.reload_data()  # ✅ Ensure fresh data before counting
         # Ask user for date input in YYYY-MM-DD format
         date_str = simpledialog.askstring("Count Visits", "Enter date (YYYY-MM-DD):", parent=parent)
         if not date_str:

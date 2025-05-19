@@ -1,46 +1,57 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox, Toplevel, Listbox, MULTIPLE
+from datetime import datetime
+from dateutil import parser
+import csv
 
 class RetrievePatient:
-    def __init__(self, master, db):
-        """Initialize with the parent window and visit records."""
+    def __init__(self, master, data_path):
+        """Initialize with the parent window and data file path."""
         self.master = master
-        if not isinstance(db, list) or not all(isinstance(entry, dict) for entry in db):
-            raise TypeError("Expected 'db' to be a list of dictionaries.")
-        self.db = db  # List of patient visit dictionaries
+        self.data_path = data_path  
 
     def execute(self):
+        try:
+            with open(self.data_path, newline='', encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                db = list(reader)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read data file: {e}")
+            return
+
         patient_id = simpledialog.askstring("Patient Lookup", "Enter Patient ID:", parent=self.master)
         if not patient_id:
             return
 
-        visits = [entry for entry in self.db if entry.get("Patient_ID") == patient_id]
+        patient_id = patient_id.strip()
+        visits = [entry for entry in db if entry.get("Patient_ID", "").strip() == patient_id]
         if not visits:
             messagebox.showinfo("Not Found", f"Patient ID {patient_id} not found.")
             return
 
-        # Ask user to choose a visit
-        visit_selection = Toplevel(self.master)
-        visit_selection.title("Select Visit")
-        visit_selection.geometry("400x300")
-        tk.Label(visit_selection, text=f"Visits for Patient {patient_id}:").pack()
+        # Parse visit times safely and store paired with visit
+        parsed_visits = []
+        for visit in visits:
+            date_str = visit.get("Visit_time", "")
+            try:
+                dt = parser.parse(date_str)
+            except Exception:
+                dt = datetime.min  # fallback to very old date if parse fails
+            parsed_visits.append((dt, visit))
 
-        visit_listbox = Listbox(visit_selection)
-        visit_listbox.pack(expand=True, fill=tk.BOTH)
+        # Sort visits by datetime ascending (oldest first)
+        parsed_visits.sort(key=lambda x: x[0])
 
-        for i, visit in enumerate(visits):
-            summary = f"{i+1}. ID: {visit.get('Visit_ID')}, Time: {visit.get('Visit_time')}, Dept: {visit.get('Visit_department')}"
-            visit_listbox.insert(tk.END, summary)
+        # Get the max datetime
+        max_dt = parsed_visits[-1][0]
 
-        def on_select_visit():
-            selected_index = visit_listbox.curselection()
-            if not selected_index:
-                messagebox.showwarning("No Selection", "Please select a visit.")
-                return
-            visit_selection.destroy()
-            self.show_fields(visits[selected_index[0]])
+        # Filter all visits that happened exactly on that max date (date only)
+        max_date_visits = [v for dt, v in parsed_visits if dt.date() == max_dt.date()]
 
-        tk.Button(visit_selection, text="Select", command=on_select_visit).pack(pady=10)
+        # Pick the last visit on that date (chronological order preserved by sorting)
+        most_recent_visit = max_date_visits[-1]
+
+        self.show_fields(most_recent_visit)
 
     def show_fields(self, visit):
         fields = [
@@ -49,10 +60,10 @@ class RetrievePatient:
         ]
 
         field_window = Toplevel(self.master)
-        field_window.title("Select Fields to View")
+        field_window.title("Select Field(s) to View")
         field_window.geometry("350x300")
 
-        tk.Label(field_window, text="Select fields to view:").pack()
+        tk.Label(field_window, text="Select field(s) to view:").pack()
 
         field_listbox = Listbox(field_window, selectmode=MULTIPLE)
         field_listbox.pack(expand=True, fill=tk.BOTH)

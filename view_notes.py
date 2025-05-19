@@ -3,6 +3,17 @@ from tkinter import messagebox, simpledialog, scrolledtext
 from datetime import datetime
 import csv
 
+def center_toplevel(window):
+    window.update_idletasks()
+    w = window.winfo_width()
+    h = window.winfo_height()
+    ws = window.winfo_screenwidth()
+    hs = window.winfo_screenheight()
+    x = (ws // 2) - (w // 2)
+    y = (hs // 2) - (h // 2)
+    window.geometry(f"{w}x{h}+{x}+{y}")
+
+
 class ViewNotes:
     def __init__(self, master, data_path, notes_path):
         self.master = master
@@ -16,7 +27,7 @@ class ViewNotes:
             return list(csv.DictReader(f))
 
     def execute(self):
-        patient_id = simpledialog.askstring("Patient ID", "Enter Patient ID:", parent=self.master)
+        patient_id = simpledialog.askstring("View Notes", "Enter Patient ID:", parent=self.master)
         if not patient_id:
             return
 
@@ -66,3 +77,5 @@ class ViewNotes:
             text_area.insert(tk.END, f"Note {i}:\n{note}\n{'-'*40}\n")
 
         text_area.config(state=tk.DISABLED)  # Make text read-only
+
+        center_toplevel(notes_window)

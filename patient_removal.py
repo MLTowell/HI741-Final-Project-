@@ -2,6 +2,16 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import csv
 
+def center_toplevel(window):
+    window.update_idletasks()
+    w = window.winfo_width()
+    h = window.winfo_height()
+    ws = window.winfo_screenwidth()
+    hs = window.winfo_screenheight()
+    x = (ws // 2) - (w // 2)
+    y = (hs // 2) - (h // 2)
+    window.geometry(f"{w}x{h}+{x}+{y}")
+
 class PatientRemoval:
     def __init__(self, patient_data, notes_data, data_path, notes_path, parent):
         self.patient_data = patient_data
@@ -24,6 +34,8 @@ class PatientRemoval:
         self.patient_id_label.grid(row=0, column=0, padx=5, pady=5)
         self.patient_id_entry.grid(row=0, column=1, padx=5, pady=5)
         self.remove_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+        center_toplevel(self.remove_window)
 
     def remove_patient(self):
         patient_id = self.patient_id_entry.get().strip()
@@ -53,6 +65,10 @@ class PatientRemoval:
         # Remove notes related to the patient (only those related to this patient)
         self.notes_data = [note for note in self.notes_data if note['Patient_ID'] != patient_id]
 
+        # ✅ Reindex the notes
+        for i, note in enumerate(self.notes_data, start=1):
+            note[""] = str(i)
+        
         # Save changes
         self.save_to_file(self.patient_data, self.data_path)
         self.save_to_file(self.notes_data, self.notes_path)
@@ -78,3 +94,10 @@ class PatientRemoval:
             print(f"Error: The file '{file_name}' was not found.")
         except IOError as e:
             print(f"An error occurred while saving '{file_name}': {e}")
+
+    def reload_data(self):
+        with open(self.data_path, newline='', encoding='utf-8') as f:
+            self.patient_data[:] = list(csv.DictReader(f))
+
+        with open(self.notes_path, newline='', encoding='utf-8') as f:
+            self.notes_data[:] = list(csv.DictReader(f))
